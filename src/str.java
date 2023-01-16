@@ -1,3 +1,5 @@
+package src;
+
 public class str {
     public static String[] merge( String[] leftPart, String[] rightPart ) {
         int cursorLeft = 0, cursorRight = 0, counter = 0;
