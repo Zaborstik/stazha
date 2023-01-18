@@ -12,10 +12,10 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        mergeNums("/Users/zaborstik/Desktop/testsstr/in1.txt", "/Users/zaborstik/Desktop/testsstr/in2.txt", true, false);
+        mergeNums("/Users/zaborstik/Desktop/testsint/in1.txt", "/Users/zaborstik/Desktop/testsint/in2.txt", true, true);
     }
 
-    public static void mergeNums(String pathFile1, String pathFile2, boolean isDiscendng, boolean isNum){
+    public static void mergeNums(String pathFile1, String pathFile2, boolean discend, boolean isNum){
         //isDiscendng по возрастанию - false, по убыванию true
 
         //путь для сохранения out.txt
@@ -34,9 +34,9 @@ public class Main {
 
             //объединяем массивы, в случае, если массив не отсортирован, выполняем cортировку
             if (isNum){
-                mergeInnerInt(isDiscendng, file1, file2, fileWriter);
+                mergeInnerInt(discend, file1, file2, fileWriter);
             } else {
-                mergeInnerString(isDiscendng, file1, file2, fileWriter);
+                mergeInnerString(discend, file1, file2, fileWriter);
             }
 
 
@@ -49,7 +49,7 @@ public class Main {
         }
     }
 
-    private static void mergeInnerString(boolean isDiscendng, Scanner file1, Scanner file2, FileWriter fileWriter) throws IOException {
+    private static void mergeInnerString(boolean discend, Scanner file1, Scanner file2, FileWriter fileWriter) throws IOException {
         HashMap<Integer, String> hashMap = new HashMap<> ();
 
         //переменные буфера
@@ -61,9 +61,8 @@ public class Main {
         hashMap.put(2, "");
 
         while (file1.hasNext() && file2.hasNext()){
-            if ((tmp1.compareTo(tmp2) * (isDiscendng ? -1 : 1)) < 0){
-                if ((!hashMap.get(2).equals("")) && (hashMap.get(2).hashCode() < tmp2.hashCode())){
-                    System.out.println(hashMap.get(2) + " " + tmp2 + " " + hashMap.get(2).hashCode() + " " + tmp2.hashCode());
+            if ((tmp2.compareTo(tmp1) * (discend ? -1 : 1)) < 0){
+                if ((!hashMap.get(2).equals("")) && ((hashMap.get(2).hashCode() * (discend ? -1 : 1)) > (tmp2.hashCode() * (discend ? -1 : 1)))){
                     throw new FileSystemException("Отсуствует сортировка");
                 } else {
                     hashMap.put(2, tmp2);
@@ -72,12 +71,12 @@ public class Main {
                 fileWriter.write((tmp2) + "\n");
                 tmp2 = file2.nextLine();
             } else {
-                if (hashMap.get(1).hashCode() < tmp1.hashCode()){
-                    //обработка неотсортированного массива
+                if ((!hashMap.get(1).equals("")) && ((hashMap.get(1).hashCode()* (discend ? -1 : 1)) > (tmp1.hashCode()) * (discend ? -1 : 1))){
                     throw new FileSystemException("Отсуствует сортировка");
                 } else {
                     hashMap.put(1, tmp1);
                 }
+
                 fileWriter.write((tmp1 + "\n"));
                 tmp1 = file1.nextLine();
             }
@@ -85,18 +84,18 @@ public class Main {
 
 //        в одном из массивов закончились элементы
         if (file2.hasNext()) {
-            mergeOfOneInnerStr(isDiscendng, file2, fileWriter, tmp1, tmp2);
+            mergeOfOneInnerStr(discend, file2, fileWriter, tmp1, tmp2);
         }
         if (file1.hasNext()) {
-            mergeOfOneInnerStr(isDiscendng, file1, fileWriter, tmp2, tmp1);
+            mergeOfOneInnerStr(discend, file1, fileWriter, tmp2, tmp1);
         }
     }
 
-    private static void mergeOfOneInnerStr(boolean isDiscendng, Scanner file, FileWriter fileWriter, String lastElement, String tmp2) throws IOException {
+    private static void mergeOfOneInnerStr(boolean discend, Scanner file, FileWriter fileWriter, String lastElement, String tmp2) throws IOException {
         boolean written = false;        //записан ли последний символ кратчайщего массива (костыли)
 
         while (file.hasNext()){
-            if ((lastElement.compareTo(tmp2) * (isDiscendng ? -1 : 1)) < 0 || written) {
+            if ((tmp2.compareTo(lastElement) * (discend ? -1 : 1)) < 0 || written) {
                 fileWriter.write((tmp2) + "\n");
                 tmp2 = file.nextLine();
             } else if (!written) {
@@ -104,16 +103,18 @@ public class Main {
                 written = true;
             }
         }
-        fileWriter.write("" + ((tmp2.compareTo(lastElement) * (isDiscendng ? -1 : 1)) < 0 ? lastElement : tmp2) + "\n");
-        fileWriter.write("" + ((lastElement.compareTo(tmp2) * (isDiscendng ? -1 : 1)) < 0 ? lastElement : tmp2));
+        if (!written) {
+            fileWriter.write("" + ((lastElement.compareTo(tmp2) * (discend ? -1 : 1)) < 0 ? lastElement : tmp2) + "\n");
+        }
+        fileWriter.write("" + ((tmp2.compareTo(lastElement) * (discend ? -1 : 1)) < 0 ? lastElement : tmp2));
     }
 
-    private static void mergeInnerInt(boolean isDiscendng, Scanner file1, Scanner file2, FileWriter fileWriter) throws IOException {
+    private static void mergeInnerInt(boolean discend, Scanner file1, Scanner file2, FileWriter fileWriter) throws IOException {
         HashMap<Integer, Integer> hashMap = new HashMap<>();
 
         //переменные буфера
-        int num1 = file1.nextInt() * (isDiscendng ? -1 : 1);
-        int num2 = file2.nextInt() * (isDiscendng ? -1 : 1);
+        int num1 = file1.nextInt() * (discend ? -1 : 1);
+        int num2 = file2.nextInt() * (discend ? -1 : 1);
 
         //кладем в мапу, чтобы проверять, отсортирован ли данный массив
         hashMap.put(1, num1);
@@ -129,8 +130,8 @@ public class Main {
                     hashMap.put(2, num2);
                 }
 
-                fileWriter.write((num2 * (isDiscendng ? -1 : 1)) + "\n");
-                num2 = file2.nextInt() * (isDiscendng ? -1 : 1);
+                fileWriter.write((num2 * (discend ? -1 : 1)) + "\n");
+                num2 = file2.nextInt() * (discend ? -1 : 1);
             } else {
                 if (hashMap.get(1) > num1){
                     System.out.println("warn");
@@ -140,34 +141,36 @@ public class Main {
                     hashMap.put(1, num1);
                 }
 
-                fileWriter.write((num1 * (isDiscendng ? -1 : 1)) + "\n");
-                num1 = file1.nextInt() * (isDiscendng ? -1 : 1);
+                fileWriter.write((num1 * (discend ? -1 : 1)) + "\n");
+                num1 = file1.nextInt() * (discend ? -1 : 1);
             }
         }
 
         //в одном из массивов закончились элементы
         if (file2.hasNext()) {
-            mergeOfOneInnerInt(isDiscendng, file2, fileWriter, num1, num2);
+            mergeOfOneInnerInt(discend, file2, fileWriter, num1, num2);
         }
         if (file1.hasNext()) {
-            mergeOfOneInnerInt(isDiscendng, file1, fileWriter, num2, num1);
+            mergeOfOneInnerInt(discend, file1, fileWriter, num2, num1);
         }
     }
 
-    private static void mergeOfOneInnerInt(boolean isDiscendng, Scanner file, FileWriter fileWriter, int lastElement, int num2) throws IOException {
+    private static void mergeOfOneInnerInt(boolean discend, Scanner file, FileWriter fileWriter, int lastElement, int num2) throws IOException {
         //записан ли последний символ кратчайщего массива (костыли)
         boolean written = false;
 
         while (file.hasNext()){
             if (lastElement >= num2 || written) {
-                fileWriter.write((num2 * (isDiscendng ? -1 : 1)) + "\n");
-                num2 = file.nextInt() * (isDiscendng ? -1 : 1);
+                fileWriter.write((num2 * (discend ? -1 : 1)) + "\n");
+                num2 = file.nextInt() * (discend ? -1 : 1);
             } else if (!written) {
-                fileWriter.write(lastElement * (isDiscendng ? -1 : 1) + "\n");
+                fileWriter.write(lastElement * (discend ? -1 : 1) + "\n");
                 written = true;
             }
+        } // проверить как с str
+        if (!written){
+            fileWriter.write("" + (Math.min(lastElement,num2)) * (discend ? -1 : 1) + "\n");
         }
-        fileWriter.write("" + (Math.min(lastElement,num2)) * (isDiscendng ? -1 : 1) + "\n");
-        fileWriter.write("" + (Math.max(lastElement,num2)) * (isDiscendng ? -1 : 1));
+        fileWriter.write("" + (Math.max(lastElement,num2)) * (discend ? -1 : 1));
     }
 }
