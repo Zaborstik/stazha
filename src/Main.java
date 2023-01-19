@@ -1,9 +1,6 @@
 package src;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,10 +9,10 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        mergeNums("/Users/zaborstik/Desktop/testsstr/in1.txt", "/Users/zaborstik/Desktop/testsstr/in2.txt", false, false);
+        mergeSort("/Users/zaborstik/Desktop/testsstr/in1.txt", "/Users/zaborstik/Desktop/testsstr/in2.txt", false, false);
     }
 
-    public static void mergeNums(String pathFile1, String pathFile2, boolean discend, boolean isNum){
+    public static void mergeSort(String pathFile1, String pathFile2, boolean discend, boolean isNum){
         //isDiscendng по возрастанию - false, по убыванию true
 
         Path pathOut = Path.of(pathFile1).getParent().resolve("out.txt");
@@ -38,9 +35,17 @@ public class Main {
             }
 
 
+        } catch (FileNotFoundException e){
+            System.out.println("Файл не найден");
         } catch (FileSystemException e){
             System.out.println("Файл поврежден, отусвет сортировка");
 
+            int numOfFile = Integer.parseInt(e.getMessage());
+            try {
+                String pathOfTmp = Files.createTempFile(String.valueOf(Path.of(pathFile1).getParent()), null).toString();
+                sort(discend, (numOfFile == 1 ? pathFile1 : pathFile2), pathOfTmp);
+                mergeSort((numOfFile == 1 ? pathFile1 : pathFile2), (numOfFile == 1 ? pathFile2 : pathFile1), discend, isNum);
+            } catch (IOException ignored) {}
         }catch (IOException e) {
             System.out.println("Файл не читается");
         }catch (Exception e){
@@ -63,7 +68,7 @@ public class Main {
                 if ((!tmp2.contains("Ё"))
                         &&(!hashMap.get(2).equals(""))
                         && ((hashMap.get(2).hashCode() * (discend ? -1 : 1)) > (tmp2.hashCode() * (discend ? -1 : 1)))){
-                    throw new FileSystemException("Отсуствует сортировка");
+                    throw new FileSystemException("2");
                 } else {
                     if (!tmp2.contains("ё")) {
                         hashMap.put(2, tmp2);
@@ -75,7 +80,7 @@ public class Main {
                 if ((!tmp1.contains("Ё"))
                         && (!hashMap.get(1).equals(""))
                         && ((hashMap.get(1).hashCode()* (discend ? -1 : 1)) > (tmp1.hashCode()) * (discend ? -1 : 1))){
-                    throw new FileSystemException("Отсуствует сортировка");
+                    throw new FileSystemException("1");
                 } else {
                     if (!tmp1.contains("ё")){
                         hashMap.put(1, tmp1);
@@ -126,7 +131,7 @@ public class Main {
         while (file1.hasNext() && file2.hasNext()){
             if (tmp1 > tmp2){
                 if (hashMap.get(2) > tmp2){
-                    throw new FileSystemException("Отсуствует сортировка");
+                    throw new FileSystemException("2");
                 } else {
                     hashMap.put(2, tmp2);
                 }
@@ -134,7 +139,7 @@ public class Main {
                 tmp2 = file2.nextInt() * (discend ? -1 : 1);
             } else {
                 if (hashMap.get(1) > tmp1){
-                    throw new FileSystemException("Отсуствует сортировка");
+                    throw new FileSystemException("1");
                 } else {
                     hashMap.put(1, tmp1);
                 }
@@ -171,8 +176,23 @@ public class Main {
         fileWriter.write("" + (Math.max(lastElement,tmp2)) * (discend ? -1 : 1));
     }
 
-    private static void sort(boolean discend, Scanner file){
-        String[] strings = new String[65536];
+    private static void sort(boolean discend, String file, String tmpFile){
+        String[] buff = new String[65536]; //64кб
 
+        // cортируем файл (записываем во временый файл)
+        try (Scanner scanner = new Scanner(new FileInputStream(file));
+        FileWriter writer = new FileWriter(tmpFile)) {
+            while (scanner.hasNext()){
+                
+            }
+        } catch (IOException ignored) {}
+
+        // переписываем из временного файла
+        try (Scanner scanner = new Scanner(new FileInputStream(tmpFile));
+        FileWriter writer = new FileWriter(file)) {
+            while(scanner.hasNext()){
+                writer.write(scanner.nextLine());
+            }
+        } catch (IOException ignored){}
     }
 }
