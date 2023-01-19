@@ -40,11 +40,11 @@ public class авыаыф {
         } catch (FileSystemException e){
             System.out.println("Файл поврежден, отусвет сортировка");
 
-            int numOfFile = Integer.parseInt(e.getMessage());
-            try (Scanner file = new Scanner(new FileInputStream(numOfFile == 1 ? pathFile1 : pathFile2));
-                 FileWriter fileWriter = new FileWriter(Files.createTempFile(String.valueOf(Path.of(pathFile1).getParent()), null).toFile())) {
-                sort(discend, file, fileWriter);
-            } catch (IOException ex) {}
+//            int numOfFile = Integer.parseInt(e.getMessage());
+//            try (Scanner file = new Scanner(new FileInputStream(numOfFile == 1 ? pathFile1 : pathFile2));
+//                 FileWriter fileWriter = new FileWriter(Files.createTempFile(String.valueOf(Path.of(pathFile1).getParent()), null).toFile())) {
+//                sort(discend, file, fileWriter);
+//            } catch (IOException ex) {}
         }catch (IOException e) {
             System.out.println("Файл не читается");
         }catch (Exception e){

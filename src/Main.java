@@ -4,24 +4,21 @@ import java.io.*;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
         mergeSort("/Users/zaborstik/Desktop/testsstr/in1.txt", "/Users/zaborstik/Desktop/testsstr/in2.txt", false, false);
     }
 
-    public static void mergeSort(String pathFile1, String pathFile2, boolean discend, boolean isNum){
-        //isDiscendng по возрастанию - false, по убыванию true
+    public static void mergeSort(String pathFile1, String pathFile2, boolean discend, boolean isNum) {
+        //isDiscendng по алфавиту - false, против true
 
         Path pathOut = Path.of(pathFile1).getParent().resolve("out.txt");
-        if (!Files.exists(pathOut)){
+        if (!Files.exists(pathOut)) {
             try {
                 Files.createFile(pathOut);
-            } catch (Exception e){
+            } catch (Exception e) {
                 System.out.println("Не удалось создать выходящий файл");
             }
         }
@@ -29,32 +26,34 @@ public class Main {
         try (Scanner file1 = new Scanner(new FileInputStream(pathFile1));
              Scanner file2 = new Scanner(new FileInputStream(pathFile2));
              FileWriter fileWriter = new FileWriter(pathOut.toFile())) {
-            if (isNum){
+            if (isNum) {
                 mergeInnerInt(discend, file1, file2, fileWriter);
             } else {
                 mergeInnerString(discend, file1, file2, fileWriter);
             }
-        } catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             System.out.println("Файл не найден");
-        } catch (FileSystemException e){
+        } catch (FileSystemException e) {
             System.out.println("Файл поврежден, отусвет сортировка");
 
             int numOfFile = Integer.parseInt(e.getMessage());
-            try (Scanner scanner = new Scanner(new FileInputStream(numOfFile == 1 ? pathFile1 : pathFile2))){
-                while (scanner.hasNext()){
-                    String pathToTmp = sort(discend, scanner, pathFile1);
+            try (Scanner scanner = new Scanner(new FileInputStream(numOfFile == 1 ? pathFile1 : pathFile2))) {
+                while (scanner.hasNext()) {
+                    String pathToTmp = sort(discend, scanner);
                     mergeSort(numOfFile == 1 ? pathFile2 : pathFile1, pathToTmp, discend, isNum);
                 }
-            } catch (FileNotFoundException ignored) {}
-        }catch (IOException e) {
+            } catch (IOException exception) {
+                System.out.println("Не удалось создать временный файл, разрешите доступ к папке, или переместите в другое место, затем запустите повторно");
+            }
+        } catch (IOException e) {
             System.out.println("Файл не читается");
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Неизвестная ошибка");
         }
     }
 
     private static void mergeInnerString(boolean discend, Scanner file1, Scanner file2, FileWriter fileWriter) throws IOException {
-        HashMap<Integer, String> hashMap = new HashMap<> ();
+        HashMap<Integer, String> hashMap = new HashMap<>();
 
         int negativeOrPositive = discend ? -1 : 1;
         String tmp1 = file1.nextLine();
@@ -64,28 +63,23 @@ public class Main {
         hashMap.put(1, "");
         hashMap.put(2, "");
 
-        while (file1.hasNext() && file2.hasNext()){
-            if ((tmp2.compareTo(tmp1) * (negativeOrPositive)) < 0){
-                if ((!tmp2.contains("Ё"))
-                        &&(!hashMap.get(2).equals(""))
-                        && ((hashMap.get(2).hashCode() * (negativeOrPositive)) > (tmp2.hashCode() * (negativeOrPositive)))){
+        while (file1.hasNext() && file2.hasNext()) {
+            if ((tmp2.compareTo(tmp1) * (negativeOrPositive)) < 0) {
+                if ((!hashMap.get(2).equals(""))
+                        && ((hashMap.get(2).hashCode() * (negativeOrPositive)) > (tmp2.hashCode() * (negativeOrPositive)))) {
                     throw new FileSystemException("2");
                 } else {
-                    if (!tmp2.contains("ё")) {
-                        hashMap.put(2, tmp2);
-                    }
+                    hashMap.put(2, tmp2);
+
                 }
                 fileWriter.write((tmp2) + "\n");
                 tmp2 = file2.nextLine();
             } else {
-                if ((!tmp1.contains("Ё"))
-                        && (!hashMap.get(1).equals(""))
-                        && ((hashMap.get(1).hashCode() * (negativeOrPositive)) > (tmp1.hashCode()) * (negativeOrPositive))){
+                if ((!hashMap.get(1).equals(""))
+                        && ((hashMap.get(1).hashCode() * (negativeOrPositive)) > (tmp1.hashCode()) * (negativeOrPositive))) {
                     throw new FileSystemException("1");
                 } else {
-                    if (!tmp1.contains("ё")){
-                        hashMap.put(1, tmp1);
-                    }
+                    hashMap.put(1, tmp1);
                 }
                 fileWriter.write((tmp1 + "\n"));
                 tmp1 = file1.nextLine();
@@ -105,7 +99,7 @@ public class Main {
         boolean written = false;        //записан ли последний символ кратчайщего массива (костыли)
         int negativeOrPositive = discend ? -1 : 1;
 
-        while (file.hasNext()){
+        while (file.hasNext()) {
             if ((tmp2.compareTo(lastElement) * (negativeOrPositive)) < 0 || written) {
                 fileWriter.write((tmp2) + "\n");
                 tmp2 = file.nextLine();
@@ -131,9 +125,9 @@ public class Main {
         hashMap.put(1, tmp1);
         hashMap.put(2, tmp2);
 
-        while (file1.hasNext() && file2.hasNext()){
-            if (tmp1 > tmp2){
-                if (hashMap.get(2) > tmp2){
+        while (file1.hasNext() && file2.hasNext()) {
+            if (tmp1 > tmp2) {
+                if (hashMap.get(2) > tmp2) {
                     throw new FileSystemException("2");
                 } else {
                     hashMap.put(2, tmp2);
@@ -141,7 +135,7 @@ public class Main {
                 fileWriter.write((tmp2 * (negativeOrPositive)) + "\n");
                 tmp2 = file2.nextInt() * (negativeOrPositive);
             } else {
-                if (hashMap.get(1) > tmp1){
+                if (hashMap.get(1) > tmp1) {
                     throw new FileSystemException("1");
                 } else {
                     hashMap.put(1, tmp1);
@@ -164,7 +158,7 @@ public class Main {
         boolean written = false;        //записан ли последний символ кратчайщего массива (костыли)
         int negativeOrPositive = discend ? -1 : 1;
 
-        while (file.hasNext()){
+        while (file.hasNext()) {
             if (lastElement >= tmp2 || written) {
                 fileWriter.write((tmp2 * (negativeOrPositive)) + "\n");
                 tmp2 = file.nextInt() * (negativeOrPositive);
@@ -173,27 +167,34 @@ public class Main {
                 written = true;
             }
         }
-        if (!written){
-            fileWriter.write("" + (Math.min(lastElement,tmp2)) * (negativeOrPositive) + "\n");
+        if (!written) {
+            fileWriter.write("" + (Math.min(lastElement, tmp2)) * (negativeOrPositive) + "\n");
         }
-        fileWriter.write("" + (Math.max(lastElement,tmp2)) * (negativeOrPositive));
+        fileWriter.write("" + (Math.max(lastElement, tmp2)) * (negativeOrPositive));
     }
 
-    private static String sort(boolean discend, Scanner file, String pathFile) throws IOException {
-        String[] buff = new String[65536]; //64кб
+    private static String sort(boolean discend, Scanner file) throws IOException {
+        ArrayList<String> list = new ArrayList<>();
         try {
-            for (int i = 0; i < 65536; i++) {
-                buff[i] = file.nextLine();
+            for (int i = 0; i < 16384; i++) { // 16kb
+                list.add(file.nextLine());
             }
-            Arrays.sort(buff);
-        } catch (NoSuchElementException e){
-            Arrays.sort(buff);
+            Collections.sort(list);
+            if (discend){
+                Collections.reverse(list);
+            }
+        } catch (NoSuchElementException e) {
+            Collections.sort(list);
+            if (discend){
+                Collections.reverse(list);
+            }
         }
-        String pathToTmp = Files.createTempFile(String.valueOf(Path.of(pathFile).getParent()), "tmp");
-        return null;
-    }
-
-    private static String[] sortInner(String[] strings){
-        return null;
+        String pathToTmp = String.valueOf(Files.createTempFile("merge", ".txt"));
+        try (FileWriter fileWriter = new FileWriter(pathToTmp)) {
+            for (String tmp : list) {
+                fileWriter.write(tmp + "\n");
+            }
+        }
+        return pathToTmp;
     }
 }
