@@ -34,14 +34,12 @@ public class Main {
         } else {
             mergeSort("out.txt", files.get(0), discend, isNum);
         }
-//        mergeSort("/Users/zaborstik/Desktop/testsint/in1.txt", "/Users/zaborstik/Desktop/testsint/in2.txt", false, true);
     }
 
     public static void mergeSort(String pathFile1, String pathFile2, boolean discend, boolean isNum) {
         //discend по алфавиту - false (по возрастанию), против true (по убыванию)
 
-        Path pathOut = Path.of(pathFile1).getParent().resolve("out.txt");
-
+        Path pathOut = Path.of("out.txt");
         try (Scanner file1 = new Scanner(new FileInputStream(pathFile1));
              Scanner file2 = new Scanner(new FileInputStream(pathFile2));
              FileWriter fileWriter = new FileWriter(pathOut.toFile())) {
@@ -50,6 +48,7 @@ public class Main {
             } else {
                 mergeInnerString(discend, file1, file2, fileWriter);
             }
+
         } catch (FileNotFoundException e) {
             System.out.println("Файл не найден");
         } catch (FileSystemException e) {
@@ -84,23 +83,32 @@ public class Main {
 
         while (file1.hasNext() && file2.hasNext()) {
             if ((tmp2.compareTo(tmp1) * (negativeOrPositive)) < 0) {
+                if (tmp2.contains("ё")) {
+                    tmp2 = tmp2.replace("ё", "е"); // замена ё, поскольку её хэш идет не по порядку
+                } else if (tmp2.contains("Ё")){
+                    tmp2 = tmp2.replace("Ё", "Е"); // замена Ё, поскольку её хэш идет не по порядку
+                }
                 if ((!hashMap.get(2).equals(""))
                         && ((hashMap.get(2).hashCode() * (negativeOrPositive)) > (tmp2.hashCode() * (negativeOrPositive)))) {
                     throw new FileSystemException("2");
                 } else {
                     hashMap.put(2, tmp2);
-
                 }
                 fileWriter.write((tmp2) + "\n");
                 tmp2 = file2.nextLine();
             } else {
+                if (tmp1.contains("ё")) {
+                    tmp1 = tmp1.replace("ё", "е"); // замена ё, поскольку её хэш идет не по порядку
+                } else if (tmp1.contains("Ё")){
+                    tmp1 = tmp1.replace("Ё", "Е"); // замена Ё, поскольку её хэш идет не по порядку
+                }
                 if ((!hashMap.get(1).equals(""))
                         && ((hashMap.get(1).hashCode() * (negativeOrPositive)) > (tmp1.hashCode()) * (negativeOrPositive))) {
                     throw new FileSystemException("1");
                 } else {
                     hashMap.put(1, tmp1);
                 }
-                fileWriter.write((tmp1 + "\n"));
+                fileWriter.write((tmp1) + "\n");
                 tmp1 = file1.nextLine();
             }
         }
