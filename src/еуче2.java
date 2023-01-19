@@ -9,16 +9,10 @@ public class еуче2 {
 //            System.out.println(s);
 //        }
 
-//        String str = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-//        char[] chars = str.toCharArray();
-//        for (char c : chars) {
-//            System.out.println(String.valueOf(c) + String.valueOf(c).hashCode());
-//        }
-//
-//        if (str.contains("ё")){
-//            System.out.println("ё".hashCode());
-//            System.out.println(str.replace("ё", "е"));
-//        }
+        for (int i = 0; i < 100; i++) {
+            System.out.println(i);
+            System.out.println(String.valueOf(i).hashCode());;
+        }
     }
 //    public static String[] merge( String[] leftPart, String[] rightPart ) {
 //        int cursorLeft = 0, cursorRight = 0, counter = 0;

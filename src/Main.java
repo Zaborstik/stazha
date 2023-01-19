@@ -8,20 +8,39 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
-        mergeSort("/Users/zaborstik/Desktop/testsstr/in1.txt", "/Users/zaborstik/Desktop/testsstr/in2.txt", false, false);
+        ArrayList<String> files = new ArrayList<>();
+        boolean discend = false;
+        boolean isNum = false;
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-a")){
+                discend = false;
+            } else if (args[i].equals("-d")){
+                discend = true;
+            } else if (args[i].equals("-s")){
+                isNum = false;
+            } else if (args[i].equals("-i")){
+                isNum = true;
+            } else {
+                if (!args[i].equals("out.txt")){
+                    files.add(args[i]);
+                }
+            }
+        }
+        if (files.size() > 1){
+            mergeSort(files.get(0), files.get(1), discend, isNum);
+            for (int i = 2; i < files.size(); i++) {
+                mergeSort("out.txt", files.get(i), discend, isNum);
+            }
+        } else {
+            mergeSort("out.txt", files.get(0), discend, isNum);
+        }
+//        mergeSort("/Users/zaborstik/Desktop/testsint/in1.txt", "/Users/zaborstik/Desktop/testsint/in2.txt", false, true);
     }
 
     public static void mergeSort(String pathFile1, String pathFile2, boolean discend, boolean isNum) {
-        //isDiscendng по алфавиту - false, против true
+        //discend по алфавиту - false (по возрастанию), против true (по убыванию)
 
         Path pathOut = Path.of(pathFile1).getParent().resolve("out.txt");
-        if (!Files.exists(pathOut)) {
-            try {
-                Files.createFile(pathOut);
-            } catch (Exception e) {
-                System.out.println("Не удалось создать выходящий файл");
-            }
-        }
 
         try (Scanner file1 = new Scanner(new FileInputStream(pathFile1));
              Scanner file2 = new Scanner(new FileInputStream(pathFile2));
@@ -108,6 +127,7 @@ public class Main {
                 written = true;
             }
         }
+
         if (!written) {
             fileWriter.write("" + ((lastElement.compareTo(tmp2) * (negativeOrPositive)) < 0 ? lastElement : tmp2) + "\n");
         }
@@ -167,6 +187,7 @@ public class Main {
                 written = true;
             }
         }
+
         if (!written) {
             fileWriter.write("" + (Math.min(lastElement, tmp2)) * (negativeOrPositive) + "\n");
         }
