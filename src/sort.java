@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public class Main {
+public class sort {
     public static void main(String[] args) {
         ArrayList<String> files = new ArrayList<>();
         boolean discend = false;
@@ -58,10 +58,9 @@ public class Main {
     public static void mergeSort(String pathFile1, String pathFile2, boolean discend, boolean isNum) {
         //discend по алфавиту - false (по возрастанию), против true (по убыванию)
 
-        Path pathOut = Path.of("/Users/zaborstik/Desktop/testsstr/out.txt");
         try (Scanner file1 = new Scanner(new FileInputStream(pathFile1));
              Scanner file2 = new Scanner(new FileInputStream(pathFile2));
-             FileWriter fileWriter = new FileWriter(pathOut.toFile())) {
+             FileWriter fileWriter = new FileWriter("out.txt")) {
             if (isNum) {
                 mergeInnerInt(discend, file1, file2, fileWriter);
             } else {
@@ -107,8 +106,9 @@ public class Main {
         HashMap<Integer, String> hashMap = new HashMap<>();
 
         int negativeOrPositive = discend ? -1 : 1;
-        String tmp1;
-        String tmp2;
+
+        String tmp1 = null;
+        String tmp2 = null;
         if (!file1.hasNext()){
             if (!file2.hasNext()){
                 System.out.println("Файлы не содержат элементов");
@@ -117,9 +117,10 @@ public class Main {
             }
         } else if (!file2.hasNext()){
             tmp2 = "";
+        } else {
+            tmp1 = replaceChar(file1.nextLine());
+            tmp2 = replaceChar(file2.nextLine());
         }
-        tmp1 = replaceChar(file1.nextLine());
-        tmp2 = replaceChar(file2.nextLine());
 
         //кладем в мапу, чтобы проверять, отсортирован ли данный массив
         hashMap.put(1, "");
@@ -196,9 +197,23 @@ public class Main {
         HashMap<Integer, Integer> hashMap = new HashMap<>();
 
         int negativeOrPositive = discend ? -1 : 1;
-        int tmp1 = file1.nextInt() * (negativeOrPositive);
-        int tmp2 = file2.nextInt() * (negativeOrPositive);
 
+        int tmp1 = 0;
+        int tmp2 = -1;
+        if (!file1.hasNext()){
+            if (!file2.hasNext()){
+                System.out.println("Файлы не содержат элементов");
+            } else {
+                tmp1 = file2.nextInt() * (negativeOrPositive);
+                tmp2 = file2.nextInt() * (negativeOrPositive);
+            }
+        } else if (!file2.hasNext()){
+            tmp2 = file1.nextInt() * (negativeOrPositive);
+            tmp1 = file1.nextInt() * (negativeOrPositive);
+        } else {
+            tmp1 = file1.nextInt() * (negativeOrPositive);
+            tmp2 = file2.nextInt() * (negativeOrPositive);
+        }
         //кладем в мапу, чтобы проверять, отсортирован ли данный массив
         hashMap.put(1, tmp1);
         hashMap.put(2, tmp2);
@@ -251,7 +266,7 @@ public class Main {
             if (lastElement >= tmp2 || written) {
                 fileWriter.write((tmp2 * (negativeOrPositive)) + "\n");
                 tmp2 = file.nextInt() * (negativeOrPositive);
-                if ((previous * negativeOrPositive) > (tmp2 * negativeOrPositive)){
+                if (previous > tmp2){
                     return false;
                 }
             } else if (!written) {
