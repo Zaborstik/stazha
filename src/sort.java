@@ -41,25 +41,32 @@ public class sort {
             System.out.println("Файл " + files.get(0) + " не существует");
         }
 
-        if (files.size() > 1){
-            mergeSort(files.get(0), files.get(1), discend, isNum);
-            for (int i = 2; i < files.size(); i++) {
-                if (!Files.exists(Path.of(files.get(i)))){
-                    System.out.println("Файл " + files.get(i) + " не существует");
-                    continue;
+        for (int i = 0; i < files.size(); i++) {
+            if (!Files.exists(Path.of(files.get(i)))){
+                System.out.println("Файл " + files.get(i) + " не существует");
+            } else {
+                try {
+                    mergeSort(files.get(i), discend, isNum, false);
+                } catch (IOException ignored) {
+
                 }
-                mergeSort("out.txt", files.get(i), discend, isNum);
             }
-        } else {
-            mergeSort("out.txt", files.get(0), discend, isNum);
         }
     }
 
-    public static void mergeSort(String pathFile1, String pathFile2, boolean discend, boolean isNum) {
+    public static void mergeSort(String pathFile, boolean discend, boolean isNum, boolean rec) throws IOException {
         //discend по алфавиту - false (по возрастанию), против true (по убыванию)
-
-        try (Scanner file1 = new Scanner(new FileInputStream(pathFile1));
-             Scanner file2 = new Scanner(new FileInputStream(pathFile2));
+        String pathToTmp = String.valueOf(Files.createTempFile("merge", ".txt"));
+        if (!rec) {
+            try (Scanner scanner = new Scanner(new FileInputStream("out.txt"));
+                 FileWriter tempFileWriter = new FileWriter(pathToTmp)) {
+                while (scanner.hasNext()) {
+                    tempFileWriter.write(scanner.nextLine() + "\n");
+                }
+            }
+        }
+        try (Scanner file1 = new Scanner(new FileInputStream(pathFile));
+             Scanner file2 = new Scanner(new FileInputStream(pathToTmp));
              FileWriter fileWriter = new FileWriter("out.txt")) {
             if (isNum) {
                 mergeInnerInt(discend, file1, file2, fileWriter);
@@ -73,15 +80,15 @@ public class sort {
             System.out.println("Файл поврежден, отусвет сортировка");
 
             int numOfFile = Integer.parseInt(e.getMessage());
-            try (Scanner scanner = new Scanner(new FileInputStream(numOfFile == 1 ? pathFile1 : pathFile2))) {
+            try (Scanner scanner = new Scanner(new FileInputStream(numOfFile == 1 ? pathFile : pathToTmp))) {
                 while (scanner.hasNext()) {
-                    String pathToTmp = null;
+                    String tmp = null;
                     if (isNum){
-                        pathToTmp = sortInt(discend, scanner);
+                        tmp = sortInt(discend, scanner);
                     } else {
-                        pathToTmp = sortStr(discend, scanner);
+                        tmp = sortStr(discend, scanner);
                     }
-                    mergeSort(numOfFile == 1 ? pathFile2 : pathFile1, pathToTmp, discend, isNum);
+                    mergeSort(tmp, discend, isNum, true);
                 }
             } catch (IOException exception) {
                 System.out.println("Не удалось создать временный файл, разрешите доступ к папке, или переместите в другое место, затем запустите повторно");
