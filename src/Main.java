@@ -8,33 +8,51 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
-//        ArrayList<String> files = new ArrayList<>();
-//        boolean discend = false;
-//        boolean isNum = false;
-//        for (int i = 0; i < args.length; i++) {
-//            if (args[i].equals("-a")){
-//                discend = false;
-//            } else if (args[i].equals("-d")){
-//                discend = true;
-//            } else if (args[i].equals("-s")){
-//                isNum = false;
-//            } else if (args[i].equals("-i")){
-//                isNum = true;
-//            } else {
-//                if (!args[i].equals("out.txt")){
-//                    files.add(args[i]);
-//                }
-//            }
-//        }
-//        if (files.size() > 1){
-//            mergeSort(files.get(0), files.get(1), discend, isNum);
-//            for (int i = 2; i < files.size(); i++) {
-//                mergeSort("out.txt", files.get(i), discend, isNum);
-//            }
-//        } else {
-//            mergeSort("out.txt", files.get(0), discend, isNum);
-//        }
-        mergeSort("/Users/zaborstik/Desktop/testsstr/in1.txt", "/Users/zaborstik/Desktop/testsstr/in2.txt", false, false);
+        ArrayList<String> files = new ArrayList<>();
+        boolean discend = false;
+        boolean isNum = false;
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-a")){
+                discend = false;
+            } else if (args[i].equals("-d")){
+                discend = true;
+            } else if (args[i].equals("-s")){
+                isNum = false;
+            } else if (args[i].equals("-i")){
+                isNum = true;
+            } else {
+                if (!args[i].equals("out.txt")){
+                    files.add(args[i]);
+                }
+            }
+        }
+
+        if (files.size() == 0){
+            System.out.println("Не передан ни один файл");
+            return;
+        }
+
+        if (!Files.exists(Path.of("out.txt"))){
+            System.out.println("Выходящий файл не существует, создайте файл, затем запустите программу заново");
+            return;
+        }
+
+        if (!Files.exists(Path.of(files.get(0)))){
+            System.out.println("Файл " + files.get(0) + " не существует");
+        }
+
+        if (files.size() > 1){
+            mergeSort(files.get(0), files.get(1), discend, isNum);
+            for (int i = 2; i < files.size(); i++) {
+                if (!Files.exists(Path.of(files.get(i)))){
+                    System.out.println("Файл " + files.get(i) + " не существует");
+                    continue;
+                }
+                mergeSort("out.txt", files.get(i), discend, isNum);
+            }
+        } else {
+            mergeSort("out.txt", files.get(0), discend, isNum);
+        }
     }
 
     public static void mergeSort(String pathFile1, String pathFile2, boolean discend, boolean isNum) {
@@ -89,8 +107,19 @@ public class Main {
         HashMap<Integer, String> hashMap = new HashMap<>();
 
         int negativeOrPositive = discend ? -1 : 1;
-        String tmp1 = replaceChar(file1.nextLine());
-        String tmp2 = replaceChar(file2.nextLine());
+        String tmp1;
+        String tmp2;
+        if (!file1.hasNext()){
+            if (!file2.hasNext()){
+                System.out.println("Файлы не содержат элементов");
+            } else {
+                tmp1 = "";
+            }
+        } else if (!file2.hasNext()){
+            tmp2 = "";
+        }
+        tmp1 = replaceChar(file1.nextLine());
+        tmp2 = replaceChar(file2.nextLine());
 
         //кладем в мапу, чтобы проверять, отсортирован ли данный массив
         hashMap.put(1, "");
