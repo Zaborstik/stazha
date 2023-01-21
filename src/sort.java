@@ -33,9 +33,11 @@ public class sort {
             return;
         }
 
-        if (!Files.exists(Path.of("out.txt"))){
-            System.out.println("Выходящий файл не существует, создайте файл, затем запустите программу заново");
-            return;
+        try {
+            Files.delete(Path.of("out.txt"));
+            Files.createFile(Path.of("out.txt"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         if (!Files.exists(Path.of(files.getFirst()))){
@@ -116,7 +118,7 @@ public class sort {
         } catch (IOException e) {
             System.out.println("Файл не читается");
         } catch (Exception e) {
-            System.out.println("Неизвестная ошибка");
+            System.out.println("Неизвестная ошибка, файл поврежден, продолжение работы программы невозможно");
         }
     }
 
@@ -342,11 +344,20 @@ public class sort {
         return pathToTmp;
     }
 
+    private static int nextInt(Scanner file){
+        try {
+            return Integer.parseInt(file.nextLine());
+        } catch (NumberFormatException e){
+            System.out.println("Была встречена и пропущена строка");
+        }
+        return nextInt(file);
+    }
+
     private static String sortInt(boolean discend, Scanner file) throws IOException {
         ArrayList<Integer> list = new ArrayList<>();
         try {
             for (int i = 0; i < 16384; i++) { // 16kb
-                list.add(file.nextInt());
+                list.add(nextInt(file));
             }
             Collections.sort(list);
             if (discend){
