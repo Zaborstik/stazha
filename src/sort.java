@@ -7,8 +7,9 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class sort {
+    public static ArrayDeque<String> files = new ArrayDeque<>();
+    public static boolean orderOfNums = false; //нарушена ли сортировка
     public static void main(String[] args) {
-        ArrayList<String> files = new ArrayList<>();
         boolean discend = false;
         boolean isNum = false;
         for (int i = 0; i < args.length; i++) {
@@ -37,34 +38,53 @@ public class sort {
             return;
         }
 
-        if (!Files.exists(Path.of(files.get(0)))){
-            System.out.println("Файл " + files.get(0) + " не существует");
+        if (!Files.exists(Path.of(files.getFirst()))){
+            System.out.println("Файл " + files.pop() + " не существует");
         }
 
-        for (int i = 0; i < files.size(); i++) {
-            if (!Files.exists(Path.of(files.get(i)))){
-                System.out.println("Файл " + files.get(i) + " не существует");
+        String pathToTmp = null;
+        try {
+            pathToTmp = String.valueOf(Files.createTempFile("out", ".txt"));
+        } catch (IOException e) {
+
+        }
+
+        while (!files.isEmpty()){
+            if (!Files.exists(Path.of(files.getFirst()))){
+                System.out.println("Файл " + files.pop() + " не существует");
             } else {
                 try {
-                    mergeSort(files.get(i), discend, isNum, false);
+                    mergeSort(files.pop(), discend, isNum, false, pathToTmp);
                 } catch (IOException ignored) {
-
                 }
             }
         }
     }
 
-    public static void mergeSort(String pathFile, boolean discend, boolean isNum, boolean rec) throws IOException {
+    public static void mergeSort(String pathFile, boolean discend, boolean isNum, boolean recursive, String pathToTmp) throws IOException {
         //discend по алфавиту - false (по возрастанию), против true (по убыванию)
-        String pathToTmp = String.valueOf(Files.createTempFile("merge", ".txt"));
-        if (!rec) {
-            try (Scanner scanner = new Scanner(new FileInputStream("out.txt"));
-                 FileWriter tempFileWriter = new FileWriter(pathToTmp)) {
-                while (scanner.hasNext()) {
-                    tempFileWriter.write(scanner.nextLine() + "\n");
+
+        if (isNum) {
+            if (orderOfNums) {
+                try (Scanner scanner = new Scanner(new FileInputStream(pathToTmp));
+                     FileWriter tempFileWriter = new FileWriter("out.txt")) {
+                    while (scanner.hasNext()) {
+                        tempFileWriter.write(scanner.nextLine() + "\n");
+                    }
                 }
+                orderOfNums = false;
             }
         }
+
+        if(!recursive) {
+            try (Scanner scanner = new Scanner(new FileInputStream("out.txt"));
+                 FileWriter tempFileWriter = new FileWriter(pathToTmp)) {
+                 while (scanner.hasNext()) {
+                    tempFileWriter.write(scanner.nextLine() + "\n");
+                 }
+            }
+        }
+
         try (Scanner file1 = new Scanner(new FileInputStream(pathFile));
              Scanner file2 = new Scanner(new FileInputStream(pathToTmp));
              FileWriter fileWriter = new FileWriter("out.txt")) {
@@ -73,26 +93,26 @@ public class sort {
             } else {
                 mergeInnerString(discend, file1, file2, fileWriter);
             }
-
         } catch (FileNotFoundException e) {
             System.out.println("Файл не найден");
         } catch (FileSystemException e) {
-            System.out.println("Файл поврежден, отусвет сортировка");
+            System.out.println("Файл поврежден, нет сортировки");
 
+            orderOfNums = true;
             int numOfFile = Integer.parseInt(e.getMessage());
             try (Scanner scanner = new Scanner(new FileInputStream(numOfFile == 1 ? pathFile : pathToTmp))) {
                 while (scanner.hasNext()) {
-                    String tmp = null;
                     if (isNum){
-                        tmp = sortInt(discend, scanner);
+                        files.add(sortInt(discend, scanner));
                     } else {
-                        tmp = sortStr(discend, scanner);
+                        files.add(sortStr(discend, scanner));
                     }
-                    mergeSort(tmp, discend, isNum, true);
                 }
             } catch (IOException exception) {
                 System.out.println("Не удалось создать временный файл, разрешите доступ к папке, или переместите в другое место, затем запустите повторно");
             }
+        } catch (NumberFormatException e){
+            System.out.println("В файлах присутствуют пробелы, уберите пробелы, запустите повторно");
         } catch (IOException e) {
             System.out.println("Файл не читается");
         } catch (Exception e) {
@@ -120,10 +140,12 @@ public class sort {
             if (!file2.hasNext()){
                 System.out.println("Файлы не содержат элементов");
             } else {
-                tmp1 = "";
+                tmp1 = replaceChar(file2.nextLine());
+                tmp2 = replaceChar(file2.nextLine());
             }
         } else if (!file2.hasNext()){
-            tmp2 = "";
+            tmp2 = replaceChar(file1.nextLine());
+            tmp1 = replaceChar(file1.nextLine());
         } else {
             tmp1 = replaceChar(file1.nextLine());
             tmp2 = replaceChar(file2.nextLine());
@@ -161,16 +183,20 @@ public class sort {
         if (file2.hasNext()) {
             if ((!hashMap.get(1).equals(""))
                     && (hashMap.get(1).compareTo(tmp1) * negativeOrPositive > 0)) {
+                throw new FileSystemException("1");
+            }
+            if (!mergeOfOneInnerStrAndIsSorted(discend, file2, fileWriter, tmp1, tmp2)){
                 throw new FileSystemException("2");
             }
-            mergeOfOneInnerStrAndIsSorted(discend, file2, fileWriter, tmp1, tmp2);
         }
         if (file1.hasNext()) {
             if ((!hashMap.get(2).equals(""))
                     && (hashMap.get(2).compareTo(tmp2) * negativeOrPositive > 0)) {
                 throw new FileSystemException("2");
             }
-            mergeOfOneInnerStrAndIsSorted(discend, file1, fileWriter, tmp2, tmp1);
+            if (!mergeOfOneInnerStrAndIsSorted(discend, file1, fileWriter, tmp2, tmp1)){
+                throw new FileSystemException("1");
+            }
         }
     }
 
@@ -186,6 +212,8 @@ public class sort {
                 tmp2 = replaceChar(tmp2);
                 if (previous.compareTo(tmp2) * negativeOrPositive > 0 ){
                     return false;
+                } else {
+                    previous = tmp2;
                 }
             } else if (!written) {
                 fileWriter.write(lastElement + "\n");
@@ -206,7 +234,7 @@ public class sort {
         int negativeOrPositive = discend ? -1 : 1;
 
         int tmp1 = 0;
-        int tmp2 = -1;
+        int tmp2 = 0;
         if (!file1.hasNext()){
             if (!file2.hasNext()){
                 System.out.println("Файлы не содержат элементов");
@@ -227,7 +255,7 @@ public class sort {
 
         while (file1.hasNext() && file2.hasNext()) {
             if (tmp1 > tmp2) {
-                if ((hashMap.get(2) * negativeOrPositive) > (tmp2 * negativeOrPositive)) {
+                if (hashMap.get(2) > tmp2 ) {
                     throw new FileSystemException("2");
                 } else {
                     hashMap.put(2, tmp2);
@@ -235,7 +263,7 @@ public class sort {
                 fileWriter.write((tmp2 * (negativeOrPositive)) + "\n");
                 tmp2 = file2.nextInt() * (negativeOrPositive);
             } else {
-                if ((hashMap.get(1) * negativeOrPositive) > (tmp1) * negativeOrPositive) {
+                if (hashMap.get(1) > tmp1) {
                     throw new FileSystemException("1");
                 } else {
                     hashMap.put(1, tmp1);
@@ -247,7 +275,7 @@ public class sort {
 
         //в одном из массивов закончились элементы
         if (file2.hasNext()) {
-            if ((hashMap.get(1) * negativeOrPositive) > (tmp1 * negativeOrPositive)){ //проверяем последний элемент, идет ли он по порядку?
+            if (hashMap.get(1) > tmp1){ //проверяем последний элемент, идет ли он по порядку?
                 throw new FileSystemException("1");
             }
             if (!mergeOfOneInnerIntAndIsSorted(discend, file2, fileWriter, tmp1, tmp2)){
@@ -255,7 +283,7 @@ public class sort {
             }
         }
         if (file1.hasNext()) {
-            if ((hashMap.get(2) * negativeOrPositive) > (tmp2 * negativeOrPositive)){ //проверяем последний элемент, идет ли он по порядку?
+            if (hashMap.get(2) > tmp2){ //проверяем последний элемент, идет ли он по порядку?
                 throw new FileSystemException("2");
             }
             if (!mergeOfOneInnerIntAndIsSorted(discend, file1, fileWriter, tmp2, tmp1)){
@@ -283,7 +311,7 @@ public class sort {
         }
 
         if (!written) {
-            fileWriter.write("" + (Math.min(lastElement, tmp2)) * (negativeOrPositive) + "\n");
+            fileWriter.write("" + (Math.min(lastElement , tmp2)) * (negativeOrPositive) + "\n");
         }
         fileWriter.write("" + (Math.max(lastElement, tmp2)) * (negativeOrPositive));
         return true;
@@ -293,7 +321,7 @@ public class sort {
         ArrayList<String> list = new ArrayList<>();
         try {
             for (int i = 0; i < 16384; i++) { // 16kb
-                list.add(file.nextLine());
+                list.add(replaceChar(file.nextLine()));
             }
             Collections.sort(list);
             if (discend){
@@ -318,7 +346,7 @@ public class sort {
         ArrayList<Integer> list = new ArrayList<>();
         try {
             for (int i = 0; i < 16384; i++) { // 16kb
-                list.add(Integer.parseInt(file.nextLine()));
+                list.add(file.nextInt());
             }
             Collections.sort(list);
             if (discend){
